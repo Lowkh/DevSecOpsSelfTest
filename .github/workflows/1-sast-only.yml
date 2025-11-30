@@ -1,4 +1,4 @@
-# SAST (Static Application Security Testing) with Snyk
+# SAST with GitHub CodeQL (Free Alternative)
 name: 1. SAST - Code Security Scan
 
 on:
@@ -9,46 +9,32 @@ on:
 
 permissions:
   contents: read
-  security-events: write  # Required for SARIF upload
+  security-events: write
 
 jobs:
-  sast:
-    name: Snyk Code Scan (SAST)
+  analyze:
+    name: CodeQL Analysis
     runs-on: ubuntu-latest
     
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['python']
+    
     steps:
-      # Step 1: Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      # Step 2: Set up Python
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
         with:
-          python-version: '3.9'
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
       
-      # Step 3: Install dependencies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
       
-      # Step 4: Run Snyk Code Scan
-      - name: Run Snyk to check code for vulnerabilities
-        continue-on-error: true
-        uses: snyk/actions/python@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
         with:
-          command: code test
-          args: --sarif-file-output=snyk-code.sarif --debug
-      - name: File locate
-        run: ls
-      # Step 5: Upload results to GitHub Security
-      - name: Upload SAST results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: snyk-code.sarif
-          category: sast
-          wait-for-processing: true
+          category: "/language:${{ matrix.language }}"
