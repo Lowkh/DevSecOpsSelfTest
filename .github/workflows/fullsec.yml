@@ -143,20 +143,24 @@ jobs:
       - name: Verify application
         run: curl -f http://localhost:5000
       
+      # ✅ CORRECT VERSION: v0.14.0
       - name: Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.15.0
+        uses: zaproxy/action-baseline@v0.14.0
         with:
           target: 'http://localhost:5000'
           cmd_options: '-a'
           allow_issue_writing: false
+          artifact_name: 'zap-baseline-scan'  # ✅ Override!
         continue-on-error: true
       
+      # ✅ CORRECT VERSION: v0.12.0
       - name: Run ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.15.0
+        uses: zaproxy/action-full-scan@v0.12.0
         with:
           target: 'http://localhost:5000'
           cmd_options: '-a -j'
           allow_issue_writing: false
+          artifact_name: 'zap-fullscan-scan'  # ✅ Override!
         continue-on-error: true
       
       # ✅ Proper artifact naming with hyphens and unique names
