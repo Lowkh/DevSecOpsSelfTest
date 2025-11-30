@@ -41,7 +41,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: code test
-          args: --sarif-file-output=snyk-code.sarif
+          args: --sarif-file-output=snyk-code.sarif --debug
       - name: File locate
         run: ls
       # Step 5: Upload results to GitHub Security
