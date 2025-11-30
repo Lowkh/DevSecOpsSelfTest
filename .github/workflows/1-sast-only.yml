@@ -1,4 +1,4 @@
-# SAST with GitHub CodeQL (Free Alternative)
+# SAST (Static Application Security Testing) with CodeQL
 name: 1. SAST - Code Security Scan
 
 on:
@@ -9,33 +9,44 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  actions: read  # Required for CodeQL telemetry
+  security-events: write  # Required for SARIF upload
 
 jobs:
   analyze:
-    name: CodeQL Analysis
+    name: CodeQL Code Scan (SAST)
     runs-on: ubuntu-latest
     
     strategy:
       fail-fast: false
       matrix:
-        language: ['python']
+        language: [ 'python' ]
     
     steps:
+      # Step 1: Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
       
+      # Step 2: Initialize CodeQL
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          queries: security-and-quality
+          queries: security-extended
       
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
-      
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+      # Step 3: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          category: "/language:${{ matrix.language }}"
+          python-version: '3.9'
+      
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      
+      # Step 5: Perform CodeQL Analysis
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: sast
